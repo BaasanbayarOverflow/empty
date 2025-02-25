@@ -1,5 +1,7 @@
-#include <SoftwareSerial.h>
+#include <Wire.h>
 #include <Servo.h>
+#include <SoftwareSerial.h>
+
 
 #define ENA 5
 #define ENB 6
@@ -58,6 +60,10 @@ void stop() {
   digitalWrite(ENA, LOW);
   digitalWrite(ENB, LOW);
 
+  Wire.beginTransmission(4);
+  Wire.write(0);             
+  Wire.endTransmission();
+
   Serial.println("HALT...");
 }
 
@@ -77,9 +83,10 @@ int getSpeed(String data) {
 
 
 void setup() {
+  Wire.begin();
   Serial.begin(9600);
   BTSerial.begin(9600);
-  Serial.println("HC-08 Bluetooth Communication Started");
+  Serial.println("MASTER READY");
 
   servo.attach(13);
   servo.write(0);
@@ -103,10 +110,36 @@ void loop() {
 
     if (receivedData == "PUSHB") {
       servo.write(100);
-    } else if (receivedData == "PRS") {
+    } else if (receivedData == "PRSS") {
       servo.write(30);
     } else if (receivedData == "SRVRST") {
       servo.write(0);
+    }
+
+    if (receivedData == "Z010") { // FIRST STEPPER RIGHT
+      Serial.println("FSR");
+      Wire.beginTransmission(4);
+      Wire.write(1);             
+      Wire.endTransmission(); 
+      return;
+    } else if (receivedData == "X010") { // FIRST STEPPER LEFT
+      Serial.println("FSL");
+      Wire.beginTransmission(4);
+      Wire.write(2);             
+      Wire.endTransmission(); 
+      return;
+    } else if (receivedData == "C010") { // SECOND STEPPER RIGHT
+      Serial.println("SSR");
+      Wire.beginTransmission(4);
+      Wire.write(8);             
+      Wire.endTransmission(); 
+      return;
+    } else if (receivedData == "V010") { // SECOND STEPPER LEFT
+      Serial.println("SSL");
+      Wire.beginTransmission(4);
+      Wire.write(9);             
+      Wire.endTransmission(); 
+      return;
     }
   
     char signal = receivedData[0];
